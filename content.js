@@ -1281,7 +1281,7 @@ const heroContent = {
       { label: "LinkedIn: anandhu-a-s-b002a5232", href: "https://linkedin.com/in/anandhu-a-s-b002a5232" },
       { label: "Instagram: __a_n_a_ndhu__", href: "https://www.instagram.com/__a_n_a_ndhu__?igsi=MWxyajVwNmxsZ2JlMA==" },
     ],
-    legal: "© 2026 Anandhu. All rights reserved.",
+    legal: "©  Anandhu. All rights reserved.",
     backToTop: "Back to top",
   },
 };
