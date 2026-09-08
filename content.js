@@ -14,7 +14,7 @@ const heroContent = {
   cta: { label: "Let’s Talk", href: "#contact" },
 
   headline: "Anandhu",
-  role: ["Software Developer", "Full-Stack · Systems · DSA"],
+  role: ["Software Developer", "Full-Stack · Systems Engineering"],
   meta: ["Laravel · PHP", "React · JavaScript", "MySQL · REST APIs", "Systems & DSA"],
 
   recruiterQuick: [
@@ -28,7 +28,7 @@ const heroContent = {
     name: "Anandhu",
     time: "now",
     lead: "Software Developer",
-    message: "building production web applications, solving algorithmic problems, and architecting reliable systems.",
+    message: "Software Developer specializing in production-grade web applications, scalable system architecture, and reliable software solutions that turn complex requirements into maintainable products.",
   },
 
   section2: {

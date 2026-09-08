@@ -1065,6 +1065,12 @@ button:focus-visible {
     width: min(420px, calc(100vw - 32px));
   }
 
+  .notif-card { gap: 9px; padding: 11px 13px 12px 11px; border-radius: 20px; }
+  .notif-avatar { width: 36px; height: 36px; }
+  .notif-name { font-size: 12px; }
+  .notif-time { font-size: 11px; }
+  .notif-msg { font-size: 12.5px; line-height: 1.35; }
+
   .notif-close { right: 0; }
 }
 
