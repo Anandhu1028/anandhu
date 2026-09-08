@@ -2188,21 +2188,38 @@
 
     if (contactForm && copy.email) {
       const status = contactForm.querySelector(".ft-form-status");
-      contactForm.addEventListener("submit", (event) => {
+      const submitButton = contactForm.querySelector(".ft-submit");
+      contactForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (!contactForm.reportValidity()) return;
 
+        if (submitButton && submitButton.disabled) return;
+        if (submitButton) submitButton.disabled = true;
+        if (status) status.textContent = "Sending...";
+
         const data = new FormData(contactForm);
-        const subject = data.get("project") || "Project inquiry";
-        const body = [
-          `Name: ${data.get("name")}`,
-          `Email: ${data.get("email")}`,
-          `Project: ${data.get("project") || "Not specified"}`,
-          "",
-          data.get("message"),
-        ].join("\n");
-        window.location.href = `mailto:${copy.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        if (status) status.textContent = "Opening your email app...";
+        data.append("access_key", "7c0a9b5c-d234-4f2f-8280-8e69bb6c5676");
+        data.append("subject", "New Portfolio Contact Message");
+
+        try {
+          const response = await fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            body: data,
+            headers: { Accept: "application/json" },
+          });
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to send your message.");
+          }
+
+          contactForm.reset();
+          if (status) status.textContent = "Message sent successfully.";
+        } catch (error) {
+          if (status) status.textContent = error.message || "Unable to send your message. Please try again.";
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+        }
       });
     }
 
