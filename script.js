@@ -72,6 +72,39 @@
       if (textNode) textNode.textContent = item.label;
     });
 
+    const mobileMenu = document.querySelector(".mobile-menu");
+    const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
+    const mobileMenuClose = document.querySelector(".mobile-menu-close");
+    const mobileMenuBackdrop = document.querySelector(".mobile-menu-backdrop");
+    const closeMobileMenu = () => {
+      document.body.classList.remove("mobile-menu-open");
+      if (mobileMenuToggle) {
+        mobileMenuToggle.setAttribute("aria-expanded", "false");
+        mobileMenuToggle.setAttribute("aria-label", "Open navigation menu");
+      }
+      if (mobileMenu) mobileMenu.setAttribute("aria-hidden", "true");
+    };
+    const openMobileMenu = () => {
+      document.body.classList.add("mobile-menu-open");
+      if (mobileMenuToggle) {
+        mobileMenuToggle.setAttribute("aria-expanded", "true");
+        mobileMenuToggle.setAttribute("aria-label", "Close navigation menu");
+      }
+      if (mobileMenu) mobileMenu.setAttribute("aria-hidden", "false");
+    };
+    if (mobileMenuToggle) mobileMenuToggle.addEventListener("click", () => {
+      if (document.body.classList.contains("mobile-menu-open")) closeMobileMenu();
+      else openMobileMenu();
+    });
+    if (mobileMenuClose) mobileMenuClose.addEventListener("click", closeMobileMenu);
+    if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener("click", closeMobileMenu);
+    document.querySelectorAll(".mobile-nav-link").forEach((link) => {
+      link.addEventListener("click", closeMobileMenu);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMobileMenu();
+    });
+
     const metaList = document.querySelector('[data-slot="meta"]');
     if (metaList && Array.isArray(heroContent.meta)) {
       metaList.replaceChildren(
@@ -158,13 +191,24 @@
         complexDiv.replaceChildren(...dsaData.complexityTiers.map((tier) => {
           const row = document.createElement("div");
           row.className = "dsa-tier";
-          const nota = document.createElement("span");
-          nota.className = "dsa-tier-notation";
-          nota.textContent = tier.notation;
+          const h = document.createElement("h3");
+          h.className = "prod-discipline-title";
+          const toggle = document.createElement("button");
+          toggle.className = "prod-discipline-toggle";
+          toggle.type = "button";
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.innerHTML = `<span>${d.title}</span><span class="prod-discipline-icon" aria-hidden="true">+</span>`;
+          h.append(toggle);
           const info = document.createElement("div");
           info.className = "dsa-tier-info";
           const nm = document.createElement("span");
           nm.className = "dsa-tier-name";
+          toggle.addEventListener("click", () => {
+            if (window.innerWidth > 720) return;
+            const expanded = toggle.getAttribute("aria-expanded") === "true";
+            toggle.setAttribute("aria-expanded", String(!expanded));
+            div.classList.toggle("is-expanded", !expanded);
+          });
           nm.textContent = tier.name;
           const desc = document.createElement("span");
           desc.className = "dsa-tier-desc";
@@ -295,10 +339,21 @@
           div.className = "prod-discipline";
           const h = document.createElement("h3");
           h.className = "prod-discipline-title";
-          h.textContent = d.title;
+          const toggle = document.createElement("button");
+          toggle.className = "prod-discipline-toggle";
+          toggle.type = "button";
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.innerHTML = `<span>${d.title}</span><span class="prod-discipline-icon" aria-hidden="true">+</span>`;
+          h.append(toggle);
           const ul = document.createElement("ul");
           (d.points || []).forEach((pt) => {
             const li = document.createElement("li"); li.textContent = pt; ul.append(li);
+          });
+          toggle.addEventListener("click", () => {
+            if (window.innerWidth > 720) return;
+            const expanded = toggle.getAttribute("aria-expanded") === "true";
+            toggle.setAttribute("aria-expanded", String(!expanded));
+            div.classList.toggle("is-expanded", !expanded);
           });
           div.append(h, ul);
           return div;
@@ -314,12 +369,20 @@
         thinkGrid.replaceChildren(...editorialData.howIThink.questions.map((item) => {
           const div = document.createElement("div");
           div.className = "ed-think-item";
-          const q = document.createElement("p");
+          const q = document.createElement("button");
           q.className = "ed-think-q";
-          q.textContent = item.q;
+          q.type = "button";
+          q.setAttribute("aria-expanded", "false");
+          q.innerHTML = `<span>${item.q}</span><span class="ed-think-icon" aria-hidden="true">+</span>`;
           const a = document.createElement("p");
           a.className = "ed-think-a";
           a.textContent = item.a;
+          q.addEventListener("click", () => {
+            if (window.innerWidth > 700) return;
+            const expanded = q.getAttribute("aria-expanded") === "true";
+            q.setAttribute("aria-expanded", String(!expanded));
+            div.classList.toggle("is-expanded", !expanded);
+          });
           div.append(q, a);
           return div;
         }));
@@ -1599,21 +1662,21 @@
     });
 
     // the header nav "Projects" link opens the chapter from anywhere
-    const projectsNav = document.querySelector('.nav-link[href="#projects"]');
-    if (projectsNav) {
+    document.querySelectorAll('.nav-link[href="#projects"], .mobile-nav-link[href="#projects"]').forEach((projectsNav) => {
       projectsNav.addEventListener("click", (e) => {
         e.preventDefault();
+        if (typeof closeMobileMenu === "function") closeMobileMenu();
         enter();
       });
-    }
+    });
 
-    const aboutNav = document.querySelector('.nav-link[href="#about"]');
-    if (aboutNav) {
+    document.querySelectorAll('.nav-link[href="#about"], .mobile-nav-link[href="#about"]').forEach((aboutNav) => {
       aboutNav.addEventListener("click", (e) => {
         e.preventDefault();
+        if (typeof closeMobileMenu === "function") closeMobileMenu();
         if (typeof s2.jumpTr === "function") s2.jumpTr(1);
       });
-    }
+    });
 
     if (backBtn) backBtn.addEventListener("click", exit);
     if (detailBack) detailBack.addEventListener("click", () => closeDetail(false));
