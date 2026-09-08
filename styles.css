@@ -4617,6 +4617,12 @@ html.works-open .wk { display: block; }
   transform: translateY(-1px);
 }
 
+.ft-detail-link--phone .ft-social-icon { color: #34a853; }
+.ft-detail-link--whatsapp .ft-social-icon { color: #25d366; }
+.ft-detail-link--github .ft-social-icon { color: #f0f0f0; }
+.ft-detail-link--linkedin .ft-social-icon { color: #0a66c2; }
+.ft-detail-link--instagram .ft-social-icon { color: #e4405f; }
+
 .ft-mail {
   display: inline-flex;
   align-items: baseline;
