@@ -11,12 +11,22 @@
   const docEl = document.documentElement;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const finePointer = window.matchMedia("(pointer: fine)");
-  let worksApi = null; // set by module 07; About's "What I Do" routes here
+  let worksApi = null; // set by module 07; the Projects nav routes here
 
   /* ---- 01 · Content hydration ---- */
   const setSlot = (name, text) => {
     const el = document.querySelector(`[data-slot="${name}"]`);
     if (el && typeof text === "string") el.textContent = text;
+  };
+
+  const setRichSlot = (name, blocks) => {
+    const el = document.querySelector(`[data-slot="${name}"]`);
+    if (!el || !Array.isArray(blocks)) return;
+    el.replaceChildren(...blocks.map((block) => {
+      const child = document.createElement(block.type === "heading" ? "h4" : "p");
+      child.textContent = block.text;
+      return child;
+    }));
   };
 
   if (typeof heroContent === "object" && heroContent) {
@@ -43,13 +53,15 @@
       Object.entries(heroContent.about.views || {}).forEach(([k, v]) => {
         setSlot(`ab-${k}-eyebrow`, v.eyebrow);
         setSlot(`ab-${k}-head`, v.head);
-        setSlot(`ab-${k}-text`, v.text);
+        if (v.blocks) setRichSlot(`ab-${k}-text`, v.blocks);
+        else setSlot(`ab-${k}-text`, v.text);
       });
     }
 
     const ctaLink = document.querySelector(".cta");
     if (ctaLink && heroContent.cta) ctaLink.setAttribute("href", heroContent.cta.href);
 
+    // nav — supports up to 6 items
     (heroContent.nav || []).forEach((item, i) => {
       const link = document.querySelector(`[data-slot="nav-${i}"]`);
       if (!link) return;
@@ -70,7 +82,329 @@
         })
       );
     }
+
+    /* ---- Engineering capabilities section ---- */
+    const engData = heroContent.engineering;
+    if (engData) {
+      setSlot("eng-eyebrow", engData.eyebrow);
+      setSlot("eng-title", engData.title);
+      setSlot("eng-subtitle", engData.subtitle);
+
+      const pillarsGrid = document.getElementById("eng-pillars-grid");
+      if (pillarsGrid && Array.isArray(engData.pillars)) {
+        pillarsGrid.replaceChildren(...engData.pillars.map((p) => {
+          const art = document.createElement("article");
+          art.className = "eng-pillar";
+          const no = document.createElement("span");
+          no.className = "eng-pillar-no";
+          no.textContent = p.no;
+          const name = document.createElement("h3");
+          name.className = "eng-pillar-name";
+          name.textContent = p.name;
+          const sum = document.createElement("p");
+          sum.className = "eng-pillar-summary";
+          sum.textContent = p.summary;
+          const tags = document.createElement("ul");
+          tags.className = "eng-pillar-tags";
+          (p.tags || []).forEach((t) => {
+            const li = document.createElement("li");
+            li.textContent = t;
+            tags.append(li);
+          });
+          art.append(no, name, sum, tags);
+          return art;
+        }));
+      }
+
+      if (engData.clientSolutions) {
+        setSlot("eng-client-title", engData.clientSolutions.title);
+        setSlot("eng-client-desc", engData.clientSolutions.description);
+        const clientGrid = document.getElementById("eng-client-items");
+        if (clientGrid && Array.isArray(engData.clientSolutions.items)) {
+          clientGrid.replaceChildren(...engData.clientSolutions.items.map((it) => {
+            const div = document.createElement("div");
+            div.className = "eng-client-item";
+            const h = document.createElement("h4");
+            h.textContent = it.title;
+            const p = document.createElement("p");
+            p.textContent = it.desc;
+            div.append(h, p);
+            return div;
+          }));
+        }
+      }
+    }
+
+    /* ---- DSA section ---- */
+    const dsaData = heroContent.dsa;
+    if (dsaData) {
+      // Structures list
+      const structs = document.getElementById("dsa-structures");
+      if (structs) {
+        structs.replaceChildren(...(dsaData.dataStructures || []).map((s) => {
+          const li = document.createElement("li"); li.textContent = s; return li;
+        }));
+      }
+      // Algorithms list
+      const algos = document.getElementById("dsa-algorithms");
+      if (algos) {
+        algos.replaceChildren(...(dsaData.algorithms || []).map((a) => {
+          const li = document.createElement("li"); li.textContent = a; return li;
+        }));
+      }
+      // Complexity tiers
+      const complexDiv = document.getElementById("dsa-complexity");
+      if (complexDiv && Array.isArray(dsaData.complexityTiers)) {
+        complexDiv.replaceChildren(...dsaData.complexityTiers.map((tier) => {
+          const row = document.createElement("div");
+          row.className = "dsa-tier";
+          const nota = document.createElement("span");
+          nota.className = "dsa-tier-notation";
+          nota.textContent = tier.notation;
+          const info = document.createElement("div");
+          info.className = "dsa-tier-info";
+          const nm = document.createElement("span");
+          nm.className = "dsa-tier-name";
+          nm.textContent = tier.name;
+          const desc = document.createElement("span");
+          desc.className = "dsa-tier-desc";
+          desc.textContent = tier.desc;
+          info.append(nm, desc);
+          row.append(nota, info);
+          return row;
+        }));
+      }
+      const timeDef = document.getElementById("dsa-time-def");
+      if (timeDef) timeDef.textContent = dsaData.timeComplexityExp || "";
+      const spaceDef = document.getElementById("dsa-space-def");
+      if (spaceDef) spaceDef.textContent = dsaData.spaceComplexityExp || "";
+
+      // Problem cards
+      const cards = document.getElementById("dsa-problem-cards");
+      if (cards && Array.isArray(dsaData.problemCards)) {
+        cards.replaceChildren(...dsaData.problemCards.map((card) => {
+          const art = document.createElement("article");
+          art.className = "dsa-card";
+          const type = document.createElement("span");
+          type.className = "dsa-card-type";
+          type.textContent = card.type;
+          const title = document.createElement("h3");
+          title.className = "dsa-card-title";
+          title.textContent = card.title;
+          const input = document.createElement("code");
+          input.className = "dsa-card-input";
+          input.textContent = card.input;
+          const approach = document.createElement("p");
+          approach.className = "dsa-card-approach";
+          approach.textContent = card.approach;
+          const meta = document.createElement("div");
+          meta.className = "dsa-card-meta";
+          [{ label: "Time", value: card.time }, { label: "Space", value: card.space }].forEach(({ label, value }) => {
+            const mi = document.createElement("div");
+            mi.className = "dsa-card-meta-item";
+            const ml = document.createElement("span");
+            ml.className = "dsa-card-meta-label";
+            ml.textContent = label;
+            const mv = document.createElement("span");
+            mv.className = "dsa-card-meta-value";
+            mv.textContent = value;
+            mi.append(ml, mv);
+            meta.append(mi);
+          });
+          const insight = document.createElement("p");
+          insight.className = "dsa-card-insight";
+          insight.textContent = card.insight || "";
+          art.append(type, title, input, approach, meta, insight);
+          return art;
+        }));
+      }
+    }
+
+    /* ---- System Design section ---- */
+    const sysData = heroContent.systemDesign;
+    if (sysData) {
+      const conceptsGrid = document.getElementById("sys-concepts-grid");
+      if (conceptsGrid && Array.isArray(sysData.concepts)) {
+        conceptsGrid.replaceChildren(...sysData.concepts.map((c) => {
+          const div = document.createElement("div");
+          div.className = "sys-concept";
+          const h = document.createElement("h3");
+          h.className = "sys-concept-name";
+          h.textContent = c.name;
+          const p = document.createElement("p");
+          p.textContent = c.desc;
+          div.append(h, p);
+          return div;
+        }));
+      }
+      const archFlow = document.getElementById("sys-arch-flow");
+      if (archFlow && sysData.architectureDiagram && Array.isArray(sysData.architectureDiagram.steps)) {
+        archFlow.replaceChildren(...sysData.architectureDiagram.steps.map((step) => {
+          const row = document.createElement("div");
+          row.className = "sys-arch-step";
+          const conn = document.createElement("div");
+          conn.className = "sys-arch-connector";
+          const dot = document.createElement("span");
+          dot.className = "sys-arch-dot";
+          const line = document.createElement("span");
+          line.className = "sys-arch-connector-line";
+          conn.append(dot, line);
+          const body = document.createElement("div");
+          body.className = "sys-arch-body";
+          const no = document.createElement("span");
+          no.className = "sys-arch-body-no";
+          no.textContent = step.no;
+          const layer = document.createElement("span");
+          layer.className = "sys-arch-body-layer";
+          layer.textContent = step.layer;
+          const detail = document.createElement("p");
+          detail.className = "sys-arch-body-detail";
+          detail.textContent = step.detail;
+          body.append(no, layer, detail);
+          row.append(conn, body);
+          return row;
+        }));
+      }
+    }
+
+    /* ---- Production Engineering section ---- */
+    const prodData = heroContent.production;
+    if (prodData) {
+      const pipeline = document.getElementById("prod-pipeline");
+      if (pipeline && Array.isArray(prodData.pipeline)) {
+        pipeline.replaceChildren(...prodData.pipeline.map((s) => {
+          const div = document.createElement("div");
+          div.className = "prod-pipeline-step";
+          const no = document.createElement("span");
+          no.className = "prod-step-no";
+          no.textContent = s.step;
+          const name = document.createElement("span");
+          name.className = "prod-step-name";
+          name.textContent = s.name;
+          const desc = document.createElement("p");
+          desc.className = "prod-step-desc";
+          desc.textContent = s.desc;
+          div.append(no, name, desc);
+          return div;
+        }));
+      }
+      const disciplines = document.getElementById("prod-disciplines");
+      if (disciplines && Array.isArray(prodData.disciplines)) {
+        disciplines.replaceChildren(...prodData.disciplines.map((d) => {
+          const div = document.createElement("div");
+          div.className = "prod-discipline";
+          const h = document.createElement("h3");
+          h.className = "prod-discipline-title";
+          h.textContent = d.title;
+          const ul = document.createElement("ul");
+          (d.points || []).forEach((pt) => {
+            const li = document.createElement("li"); li.textContent = pt; ul.append(li);
+          });
+          div.append(h, ul);
+          return div;
+        }));
+      }
+    }
+
+    /* ---- How I Think section ---- */
+    const editorialData = heroContent.editorial;
+    if (editorialData && editorialData.howIThink) {
+      const thinkGrid = document.getElementById("ed-think-grid");
+      if (thinkGrid && Array.isArray(editorialData.howIThink.questions)) {
+        thinkGrid.replaceChildren(...editorialData.howIThink.questions.map((item) => {
+          const div = document.createElement("div");
+          div.className = "ed-think-item";
+          const q = document.createElement("p");
+          q.className = "ed-think-q";
+          q.textContent = item.q;
+          const a = document.createElement("p");
+          a.className = "ed-think-a";
+          a.textContent = item.a;
+          div.append(q, a);
+          return div;
+        }));
+      }
+    }
+
+    /* ---- Skill Bars section ---- */
+    const skbData = heroContent.skillBars;
+    if (skbData) {
+      setSlot("skb-eyebrow", skbData.eyebrow);
+      setSlot("skb-title", skbData.title);
+      setSlot("skb-title-accent", skbData.titleAccent);
+      setSlot("skb-note", skbData.note);
+
+      const skbGroups = document.getElementById("skb-groups");
+      if (skbGroups && Array.isArray(skbData.groups)) {
+        const allFills = []; // collect for IntersectionObserver
+
+        skbGroups.replaceChildren(...skbData.groups.map((grp) => {
+          const groupEl = document.createElement("div");
+          groupEl.className = "skb-group";
+
+          const label = document.createElement("p");
+          label.className = "skb-group-label";
+          label.textContent = grp.category;
+          groupEl.append(label);
+
+          (grp.skills || []).forEach((skill, si) => {
+            const row = document.createElement("div");
+            row.className = "skb-skill";
+            // stagger delay: each skill in group offset by 80ms
+            const delay = si * 0.08;
+            row.style.setProperty("--skb-delay", `${delay}s`);
+            row.setAttribute("data-skb-delay", "");
+
+            const name = document.createElement("span");
+            name.className = "skb-skill-name";
+            name.textContent = skill.name;
+
+            const lbl = document.createElement("span");
+            lbl.className = "skb-skill-label";
+            lbl.textContent = skill.label;
+
+            const track = document.createElement("div");
+            track.className = "skb-track";
+            track.setAttribute("data-pct", skill.level + "%");
+
+            const fill = document.createElement("div");
+            fill.className = "skb-fill";
+            fill.style.setProperty("--skb-level", skill.level + "%");
+            track.append(fill);
+
+            row.append(name, lbl, track);
+            groupEl.append(row);
+            allFills.push({ fill, track });
+          });
+
+          return groupEl;
+        }));
+
+        /* IntersectionObserver: fire once when the groups container enters view */
+        if ("IntersectionObserver" in window) {
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                allFills.forEach(({ fill, track }) => {
+                  fill.classList.add("is-filled");
+                  track.classList.add("is-filled");
+                });
+                io.disconnect();
+              }
+            });
+          }, { threshold: 0.15 });
+          io.observe(skbGroups);
+        } else {
+          // fallback: fill immediately
+          allFills.forEach(({ fill, track }) => {
+            fill.classList.add("is-filled");
+            track.classList.add("is-filled");
+          });
+        }
+      }
+    }
   }
+
 
   /* ---- 03 · Micro-interactions (armed after the sequence settles) ---- */
   const portraitLayer = document.querySelector(".portrait-parallax");
@@ -633,11 +967,6 @@
 
     doorBtns.forEach((btn) =>
       btn.addEventListener("click", () => {
-        // WHAT I DO is the Section-4 trigger, never an About card.
-        if (btn.dataset.ab === "what") {
-          if (worksApi) worksApi.enter();
-          return;
-        }
         openAbout(btn);
       })
     );
@@ -677,11 +1006,31 @@
     const totalEl = wk.querySelector("[data-wk-total]");
     const detail = wk.querySelector(".wk-detail");
     const detailClose = wk.querySelector(".wk-detail-close");
-    const detailImg = wk.querySelector(".wk-detail-media img");
-    const detailTitle = wk.querySelector(".wk-detail-title");
+    const detailBack = wk.querySelector(".wk-detail-back");
+    const detailImg = wk.querySelector(".wk-gallery-img");
+    const detailGallery = wk.querySelector(".wk-detail-gallery");
+    const detailPrev = wk.querySelector(".wk-gallery-arrow--prev");
+    const detailNext = wk.querySelector(".wk-gallery-arrow--next");
+    const detailCounter = wk.querySelector(".wk-gallery-counter");
+    const detailExpand = wk.querySelector(".wk-gallery-expand");
+    const detailStripPrev = wk.querySelector(".wk-strip-arrow--prev");
+    const detailStripNext = wk.querySelector(".wk-strip-arrow--next");
+    const detailPagination = wk.querySelector(".wk-gallery-pagination");
+    const detailBadge = wk.querySelector(".wk-detail-badge");
+    const detailTitleWhite = wk.querySelector(".wk-title-white");
+    const detailTitleAccent = wk.querySelector(".wk-title-accent");
+    const detailSummary = wk.querySelector(".wk-detail-summary");
+    const detailVisit = wk.querySelector(".wk-btn-visit");
+    const detailCode = wk.querySelector(".wk-btn-code");
+    const detailStats = wk.querySelector(".wk-detail-stats");
+    const detailQuoteText = wk.querySelector(".wk-quote-text");
+    const detailAuthorName = wk.querySelector(".wk-author-name");
+    const detailAuthorRole = wk.querySelector(".wk-author-role");
+    const detailQuoteBox = wk.querySelector(".wk-detail-quote-box");
     const mainEl = document.querySelector("main");
 
-    const projects = (heroContent.works.projects || []).filter((p) => !p.teaser);
+    const allProjects = (heroContent.works.projects || []).filter((p) => !p.teaser);
+    const projects = allProjects.slice(0, 4);
     const pad2 = (n) => String(n).padStart(2, "0");
     const ARROW =
       '<svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.6" ' +
@@ -737,10 +1086,21 @@
       outro.innerHTML =
         '<div class="wk-outro">' +
         '<p class="wk-outro-line">Built with <b>Passion.</b><br>Driven by <b>Creativity.</b></p>' +
-        `<button class="wk-return" type="button">${ARROW} Back to About</button></div>`;
+        `<button class="wk-return" type="button">${ARROW} View All Projects</button></div>`;
       addScreen(outro, 0);
       const ret = outro.querySelector(".wk-return");
-      if (ret) ret.addEventListener("click", () => exit());
+      if (ret) {
+        ret.addEventListener("click", () => {
+          exit(() => {
+            const projectsDoor = document.querySelector('.ab-box--think[data-ab="think"]');
+            if (!projectsDoor) return;
+            if (typeof s2.jumpTr === "function") s2.jumpTr(1);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => projectsDoor.click());
+            });
+          });
+        });
+      }
     }
 
     const N = screens.length;
@@ -817,15 +1177,363 @@
       }
     });
 
-    /* — project detail shell — */
+    /* — project detail shell — rich tabbed engineering breakdown — */
+    const detailBody = detail ? detail.querySelector("#wk-detail-body") : null;
+    const detailTabs = detail ? [...detail.querySelectorAll(".wk-tab")] : [];
+    let gallerySources = [];
+    let galleryIndex = 0;
+
+    const selectGalleryImage = (index) => {
+      if (!detailImg || !gallerySources.length) return;
+      galleryIndex = (index + gallerySources.length) % gallerySources.length;
+      detailImg.style.opacity = "0.35";
+      window.setTimeout(() => {
+        detailImg.src = gallerySources[galleryIndex];
+        detailImg.style.opacity = "1";
+      }, 70);
+      if (detailCounter) detailCounter.textContent = `${galleryIndex + 1} / ${gallerySources.length}`;
+      if (detailGallery) {
+        detailGallery.querySelectorAll(".wk-detail-thumb").forEach((item, itemIndex) => {
+          const isActive = itemIndex === galleryIndex;
+          item.classList.toggle("is-active", isActive);
+          if (isActive) {
+            item.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+          }
+        });
+      }
+      if (detailPagination) {
+        const bars = detailPagination.querySelectorAll(".wk-page-bar");
+        const activeBarIdx = Math.floor((galleryIndex / gallerySources.length) * bars.length);
+        bars.forEach((bar, bIdx) => {
+          bar.classList.toggle("is-active", bIdx === activeBarIdx);
+        });
+      }
+    };
+
+    const getStatIcon = (type) => {
+      switch (type) {
+        case "users":
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+        case "target":
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+        case "trend":
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+        case "clock":
+        default:
+          return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      }
+    };
+
+    const renderTab = (data, tabKey) => {
+      if (!detailBody) return;
+      detailBody.innerHTML = "";
+      switch (tabKey) {
+        case "problem": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">!</span><span>The Problem</span>';
+          detailBody.append(heading);
+
+          const desc = document.createElement("p");
+          desc.className = "wk-tab-desc";
+          desc.textContent = data.problem || "No problem statement specified.";
+          detailBody.append(desc);
+
+          const grid = document.createElement("div");
+          grid.className = "wk-tab-grid";
+
+          // Card 1: Key Challenges
+          const c1 = document.createElement("div");
+          c1.className = "wk-tab-card";
+          const docIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+          c1.innerHTML = `<h3><span class="wk-card-icon">${docIcon}</span>Key Challenges</h3>`;
+          const ul1 = document.createElement("ul");
+          (data.keyChallenges || []).forEach((ch) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span class="wk-item-bullet" aria-hidden="true">•</span><span class="wk-item-text">${ch}</span>`;
+            ul1.append(li);
+          });
+          c1.append(ul1);
+          grid.append(c1);
+
+          // Card 2: Business Impact
+          const c2 = document.createElement("div");
+          c2.className = "wk-tab-card is-check";
+          const targetIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+          c2.innerHTML = `<h3><span class="wk-card-icon">${targetIcon}</span>Business Impact</h3>`;
+          const ul2 = document.createElement("ul");
+          (data.businessImpact || []).forEach((imp) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span class="wk-item-check" aria-hidden="true">✓</span><span class="wk-item-text">${imp}</span>`;
+            ul2.append(li);
+          });
+          c2.append(ul2);
+          grid.append(c2);
+
+          detailBody.append(grid);
+          break;
+        }
+        case "solution": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">✓</span><span>The Solution</span>';
+          detailBody.append(heading);
+
+          const desc = document.createElement("p");
+          desc.className = "wk-tab-desc";
+          desc.textContent = data.solution || "No solution description provided.";
+          detailBody.append(desc);
+
+          const grid = document.createElement("div");
+          grid.className = "wk-tab-grid";
+
+          const c1 = document.createElement("div");
+          c1.className = "wk-tab-card";
+          c1.innerHTML = '<h3><span class="wk-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>Core Capabilities</h3>';
+          const ul1 = document.createElement("ul");
+          (data.solutionCapabilities || [data.solution]).forEach((item) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span class="wk-item-bullet" aria-hidden="true">•</span><span class="wk-item-text">${item}</span>`;
+            ul1.append(li);
+          });
+          c1.append(ul1);
+          grid.append(c1);
+
+          const c2 = document.createElement("div");
+          c2.className = "wk-tab-card is-check";
+          c2.innerHTML = '<h3><span class="wk-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg></span>Operational Outcomes</h3>';
+          const ul2 = document.createElement("ul");
+          (data.solutionOutcomes || [data.result]).forEach((item) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span class="wk-item-check" aria-hidden="true">✓</span><span class="wk-item-text">${item}</span>`;
+            ul2.append(li);
+          });
+          c2.append(ul2);
+          grid.append(c2);
+
+          detailBody.append(grid);
+          break;
+        }
+        case "tech": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">⚡</span><span>Technology Stack</span>';
+          detailBody.append(heading);
+
+          const grid = document.createElement("div");
+          grid.className = "wk-tech-grid";
+          (data.technologies || []).forEach((t) => {
+            const card = document.createElement("div");
+            card.className = "wk-tech-card";
+            if (typeof t === "object" && t !== null) {
+              card.innerHTML = `<span class="wk-tech-badge">${t.cat || "Tech"}</span><div class="wk-tech-name">${t.name}</div><div class="wk-tech-role">${t.role || ""}</div>`;
+            } else {
+              card.innerHTML = `<span class="wk-tech-badge">Technology</span><div class="wk-tech-name">${t}</div>`;
+            }
+            grid.append(card);
+          });
+          detailBody.append(grid);
+          break;
+        }
+        case "engineering": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">⚙</span><span>Engineering Architecture & Implementation</span>';
+          detailBody.append(heading);
+
+          const list = document.createElement("div");
+          list.className = "wk-eng-list";
+          (data.engineering || []).forEach((e, idx) => {
+            const item = document.createElement("div");
+            item.className = "wk-eng-item";
+            item.innerHTML = `<span class="wk-eng-no">${String(idx + 1).padStart(2, "0")}</span><p>${e}</p>`;
+            list.append(item);
+          });
+          detailBody.append(list);
+          break;
+        }
+        case "architecture": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">📐</span><span>System Pipeline & Data Flow</span>';
+          detailBody.append(heading);
+
+          const box = document.createElement("div");
+          box.className = "wk-arch-box";
+          const flow = document.createElement("div");
+          flow.className = "wk-arch-flow";
+          const steps = (data.architecture || "Client UI → Laravel API → MySQL Database").split("→");
+          steps.forEach((s, idx) => {
+            const node = document.createElement("div");
+            node.className = "wk-arch-node";
+            node.textContent = s.trim();
+            flow.append(node);
+            if (idx < steps.length - 1) {
+              const arrow = document.createElement("span");
+              arrow.className = "wk-arch-arrow";
+              arrow.textContent = "➔";
+              flow.append(arrow);
+            }
+          });
+          box.append(flow);
+          detailBody.append(box);
+          break;
+        }
+        case "result": {
+          const heading = document.createElement("div");
+          heading.className = "wk-tab-heading";
+          heading.innerHTML = '<span class="wk-tab-icon-badge">🏆</span><span>Production Results & Performance</span>';
+          detailBody.append(heading);
+
+          const desc = document.createElement("p");
+          desc.className = "wk-tab-desc";
+          desc.textContent = data.result || "Production platform operating reliably.";
+          detailBody.append(desc);
+
+          if (Array.isArray(data.stats) && data.stats.length) {
+            const grid = document.createElement("div");
+            grid.className = "wk-tab-grid";
+            const c = document.createElement("div");
+            c.className = "wk-tab-card";
+            c.style.gridColumn = "1 / -1";
+            c.innerHTML = '<h3><span class="wk-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg></span>Key Operational Metrics</h3>';
+            const ul = document.createElement("ul");
+            data.stats.forEach((st) => {
+              const li = document.createElement("li");
+              li.innerHTML = `<strong>${st.value}</strong> &mdash; ${st.label}`;
+              ul.append(li);
+            });
+            c.append(ul);
+            grid.append(c);
+            detailBody.append(grid);
+          }
+          break;
+        }
+      }
+    };
+
+    detailTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        detailTabs.forEach((t) => t.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        if (tab.dataset.currentProject) {
+          const proj = projects.find((p) => p.key === tab.dataset.currentProject);
+          if (proj) renderTab(proj, tab.dataset.tab);
+        }
+      });
+    });
+
     const openDetail = (data) => {
       if (!detail) return;
-      if (detailImg) { detailImg.src = data.img; detailImg.alt = data.name || data.title || ""; }
-      if (detailTitle) detailTitle.textContent = data.title || data.name || "";
+      gallerySources = Array.isArray(data.gallery) && data.gallery.length ? data.gallery : [data.img];
+      galleryIndex = 0;
+
+      if (detailImg) {
+        detailImg.src = gallerySources[0];
+        detailImg.alt = data.name || data.title || "";
+      }
+      if (detailCounter) detailCounter.textContent = `1 / ${gallerySources.length}`;
+
+      if (detailGallery) {
+        detailGallery.replaceChildren(...gallerySources.map((src, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "wk-detail-thumb";
+          button.classList.toggle("is-active", index === 0);
+          button.setAttribute("aria-label", `View project screenshot ${index + 1}`);
+          const image = document.createElement("img");
+          image.src = src;
+          image.alt = "";
+          image.loading = "lazy";
+          image.decoding = "async";
+          button.append(image);
+          button.addEventListener("click", () => selectGalleryImage(index));
+          return button;
+        }));
+      }
+
+      if (detailPagination) {
+        const barCount = Math.min(4, Math.max(2, Math.min(gallerySources.length, 4)));
+        detailPagination.replaceChildren(...Array.from({ length: barCount }, (_, i) => {
+          const bar = document.createElement("span");
+          bar.className = "wk-page-bar";
+          if (i === 0) bar.classList.add("is-active");
+          return bar;
+        }));
+      }
+
+      // Title Prefix & Accent
+      if (detailTitleWhite) detailTitleWhite.textContent = data.titlePrefix || data.name || "";
+      if (detailTitleAccent) detailTitleAccent.textContent = data.titleAccent || "";
+      if (detailSummary) detailSummary.textContent = data.summary || data.title || "";
+      if (detailBadge) detailBadge.textContent = data.badge || ((data.cat || "") + " · " + (data.year || ""));
+
+      // Action links
+      if (detailVisit) {
+        detailVisit.href = data.liveUrl || "#";
+        detailVisit.style.display = data.liveUrl && data.liveUrl !== "#" ? "inline-flex" : (data.liveUrl ? "inline-flex" : "none");
+      }
+      if (detailCode) {
+        detailCode.href = data.codeUrl || "https://github.com/Anandhu1028";
+      }
+
+      // Stats row
+      if (detailStats) {
+        detailStats.replaceChildren(...(Array.isArray(data.stats) ? data.stats : []).map((stat) => {
+          const item = document.createElement("div");
+          item.className = "wk-detail-stat";
+          item.innerHTML = `
+            <span class="wk-stat-icon">${getStatIcon(stat.icon)}</span>
+            <strong>${stat.value}</strong>
+            <span>${stat.label}</span>
+          `;
+          return item;
+        }));
+      }
+
+      // Testimonial quote box
+      const t = data.testimonial || (data.quote ? { quote: data.quote, author: "TIMS TEAM", role: "Product Team" } : null);
+      if (detailQuoteBox) {
+        if (t && t.quote) {
+          detailQuoteBox.style.display = "flex";
+          if (detailQuoteText) detailQuoteText.textContent = `"${t.quote.replace(/^["']|["']$/g, "")}"`;
+          if (detailAuthorName) detailAuthorName.textContent = t.author || "PROJECT TEAM";
+          if (detailAuthorRole) detailAuthorRole.textContent = t.role || "Team";
+        } else {
+          detailQuoteBox.style.display = "none";
+        }
+      }
+
+      // Tabs: default to Problem
+      detailTabs.forEach((t) => {
+        t.classList.remove("is-active");
+        t.dataset.currentProject = data.key || "";
+      });
+      if (detailTabs[0]) detailTabs[0].classList.add("is-active");
+      renderTab(data, "problem");
+
       flashTo(() => detail.classList.add("is-open"), () => {
         if (detailClose) detailClose.focus({ preventScroll: true });
       });
     };
+
+    if (detailPrev) detailPrev.addEventListener("click", () => selectGalleryImage(galleryIndex - 1));
+    if (detailNext) detailNext.addEventListener("click", () => selectGalleryImage(galleryIndex + 1));
+    if (detailStripPrev && detailGallery) {
+      detailStripPrev.addEventListener("click", () => {
+        detailGallery.scrollBy({ left: -190, behavior: "smooth" });
+      });
+    }
+    if (detailStripNext && detailGallery) {
+      detailStripNext.addEventListener("click", () => {
+        detailGallery.scrollBy({ left: 190, behavior: "smooth" });
+      });
+    }
+    if (detailExpand) {
+      detailExpand.addEventListener("click", () => {
+        if (detailImg && detailImg.src) window.open(detailImg.src, "_blank");
+      });
+    }
 
     const closeDetail = (instant) => {
       if (!detail || !detail.classList.contains("is-open")) return;
@@ -851,7 +1559,7 @@
       }, () => { if (backBtn) backBtn.focus({ preventScroll: true }); });
     };
 
-    const exit = () => {
+    const exit = (afterExit) => {
       if (!docEl.classList.contains("works-open")) return;
       flashTo(() => {
         closeDetail(true);
@@ -864,10 +1572,31 @@
           (lastFocus && document.contains(lastFocus) && lastFocus) ||
           document.querySelector(".ab-box--what");
         if (target && target.focus) target.focus({ preventScroll: true });
+        if (afterExit) afterExit();
       });
     };
 
-    worksApi = { enter, exit };
+    worksApi = {
+      enter,
+      exit,
+      openProject: (projectKey) => {
+        const project = allProjects.find((item) => item.key === projectKey);
+        if (!project) return;
+        if (docEl.classList.contains("works-open")) {
+          openDetail(project);
+          return;
+        }
+        enter();
+        window.setTimeout(() => openDetail(project), reduceMotion.matches ? 80 : 720);
+      },
+    };
+
+    document.querySelectorAll(".ab-project-view").forEach((button) => {
+      button.addEventListener("click", () => {
+        const card = button.closest("[data-project-key]");
+        if (card && worksApi) worksApi.openProject(card.dataset.projectKey);
+      });
+    });
 
     // the header nav "Projects" link opens the chapter from anywhere
     const projectsNav = document.querySelector('.nav-link[href="#projects"]');
@@ -878,7 +1607,16 @@
       });
     }
 
+    const aboutNav = document.querySelector('.nav-link[href="#about"]');
+    if (aboutNav) {
+      aboutNav.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (typeof s2.jumpTr === "function") s2.jumpTr(1);
+      });
+    }
+
     if (backBtn) backBtn.addEventListener("click", exit);
+    if (detailBack) detailBack.addEventListener("click", () => closeDetail(false));
     if (detailClose) detailClose.addEventListener("click", () => closeDetail(false));
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || !docEl.classList.contains("works-open")) return;
@@ -890,31 +1628,19 @@
   }
 
 
-  /* ---- 08 · BIG ROBOT — the original large Nexbot experience ----
-     The supplied scene keeps its own lighting, composition and scale.
-     Its head answers to the MOUSE (the scene's own cursor-follow is a
-     barely-there 4 degrees, so the supplied rig -- Head / Head 2 / Neck
-     -- is driven here with damping and a controlled range). Scroll is
-     the camera for the glass idea panels only: the two systems are
-     completely independent of each other. */
+  /* ---- 08 · EXPERIENCE — scroll-driven panels ------------------- */
   const RB = {
-    scene: "https://prod.spline.design/9U1pA50upCe33lsu/scene.splinecode",
-    runtime: "https://cdn.spline.design/@splinetool/runtime@2.0.13/build/runtime.js",
     zFar: -1500,         // where a panel starts, deep in the scene
     zPast: 760,          // where it ends, past the viewer
-    lateral: 23,         // how far off-centre (vw) — panels pass beside the robot
+    lateral: 23,         // how far off-centre (vw) the panels travel
     span: 0.62,          // how much of the timeline one panel occupies
-    settle: 0.86,        // the journey ends here; the rest is breathing room
-    look: 0.4,           // head yaw at the edge of the screen (rad, about 23deg)
-    lookX: 0.07,         // a little chin lift as it turns
-    tau: 0.34,           // damping: it follows, then catches up
+    settle: 1,           // the final card ends with the pinned journey
   };
 
   const rbSection = document.querySelector(".rb");
 
   if (rbSection && typeof heroContent === "object" && heroContent.bigRobot) {
     const copy = heroContent.bigRobot;
-    const canvas = rbSection.querySelector(".rb-canvas");
     const panelBox = rbSection.querySelector(".rb-panels");
     const pinEl = rbSection.querySelector(".rb-pin");
     const style = rbSection.style;
@@ -1046,27 +1772,11 @@
       style.setProperty("--rbC", intro.toFixed(3));
     };
 
-    /* — the scene, mounted lazily and paused off-screen — */
-    let app = null, loading = false, running = false, rig = null;
     let raf = null, active = false, entry = 0, entryT = 0, lastT = 0;
-
-    /* mouse -> head. Independent of scroll; damped, never snapping. */
-    let mx = 0, mxTarget = 0;
 
     const step = (now) => {
       const dt = lastT ? Math.min((now - lastT) / 1000, 0.25) : 0.016;
       lastT = now;
-
-      // the head follows the cursor with a little weight
-      const before = mx;
-      mx += (mxTarget - mx) * (1 - Math.exp(-dt / RB.tau));
-      if (Math.abs(mxTarget - mx) < 0.0008) mx = mxTarget;
-      if (rig && mx !== before) {
-        const hy = -mx * RB.look;             // cursor left -> the robot looks left
-        if (rig.head) { rig.head.rotation.y = hy; rig.head.rotation.x = Math.abs(mx) * RB.lookX; }
-        if (rig.head2) rig.head2.rotation.y = hy * 0.18;
-        if (rig.neck) rig.neck.rotation.y = hy * 0.3;
-      }
 
       jp += (jpTarget - jp) * (1 - Math.exp(-dt / 0.11));
       if (Math.abs(jpTarget - jp) < 0.0004) jp = jpTarget;
@@ -1075,7 +1785,7 @@
       style.setProperty("--rbIn", entry.toFixed(4));
       renderJourney(jp);
 
-      const settled = jp === jpTarget && entry === entryT && mx === mxTarget;
+      const settled = jp === jpTarget && entry === entryT;
       if (settled) { lastT = 0; raf = null; return; }   // park: nothing to animate
       raf = requestAnimationFrame(step);
     };
@@ -1090,55 +1800,12 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", () => { measureRb(); onScroll(); });
 
-    if (finePointer.matches) {
-      window.addEventListener("pointermove", (e) => {
-        if (!active) return;
-        const r = rbSection.getBoundingClientRect();
-        mxTarget = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
-        kick();
-      }, { passive: true });
-    }
-
-    const mountRobot = () => {
-      if (loading || app || reduceMotion.matches || !canvas) return;
-      loading = true;
-      import(RB.runtime)
-        .then(({ Application }) => {
-          app = new Application(canvas);
-          return app.load(RB.scene);
-        })
-        .then(() => {
-          // take the rig over so the look reads clearly, keeping the rest
-          // (lighting, materials, composition, scale) exactly as supplied
-          if (app.setGlobalEvents) app.setGlobalEvents(false);
-          const find = (n) => (app.findObjectByName ? app.findObjectByName(n) : null);
-          rig = { head: find("Head"), head2: find("Head 2"), neck: find("Neck") };
-          running = true;
-          rbSection.classList.add("is-robot-ready");
-          window.__rbBig = { app, rig, panels };   // QA handle
-          kick();
-        })
-        .catch(() => { loading = false; kick(); });
-    };
-
-    const near = new IntersectionObserver((entries) => {
-      if (entries.some((en) => en.isIntersecting)) {
-        mountRobot();
-        near.disconnect();
-      }
-    }, { rootMargin: "120% 0px" });
-    near.observe(rbSection);
-
     const vis = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         // a touching edge reports as intersecting — require real coverage
         active = en.isIntersecting && en.intersectionRatio > 0.02;
         if (active) {
           entryT = 1;
-          if (app && !running) { app.play(); running = true; }
-        } else if (app && running) {
-          app.stop();                 // no rendering while off-screen
-          running = false;
         }
         kick();
       });
@@ -1437,6 +2104,7 @@
     const cols = ftSection.querySelector('[data-slot="ft-cols"]');
     const topBtn = ftSection.querySelector(".ft-top");
     const mail = ftSection.querySelector(".ft-mail");
+    const contactForm = ftSection.querySelector(".ft-form");
 
     setSlot("ft-eyebrow", copy.eyebrow);
     setSlot("ft-head-1", copy.headline && copy.headline[0]);
@@ -1444,6 +2112,8 @@
     setSlot("ft-line", copy.line);
     setSlot("ft-mail-label", copy.emailLabel);
     setSlot("ft-mail-address", copy.email);
+    setSlot("ft-focus", copy.focus);
+    setSlot("ft-skills", copy.skills);
     setSlot("ft-legal", copy.legal);
     setSlot("ft-note", copy.note);
     setSlot("ft-top", copy.backToTop);
@@ -1451,6 +2121,26 @@
     if (mail) {
       if (copy.email) mail.setAttribute("href", `mailto:${copy.email}`);
       else mail.remove();
+    }
+
+    if (contactForm && copy.email) {
+      const status = contactForm.querySelector(".ft-form-status");
+      contactForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!contactForm.reportValidity()) return;
+
+        const data = new FormData(contactForm);
+        const subject = data.get("project") || "Project inquiry";
+        const body = [
+          `Name: ${data.get("name")}`,
+          `Email: ${data.get("email")}`,
+          `Project: ${data.get("project") || "Not specified"}`,
+          "",
+          data.get("message"),
+        ].join("\n");
+        window.location.href = `mailto:${copy.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        if (status) status.textContent = "Opening your email app...";
+      });
     }
 
     /* link columns (+ an "Elsewhere" column only if social links exist) */

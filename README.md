@@ -1,4 +1,4 @@
-# Gireesh — Cinematic Portfolio
+# Anandhu — Cinematic Portfolio
 
 A scroll-driven personal portfolio for a Computer Science student: a cinematic hero, a
 pinned typography chapter that breaks apart like a puzzle, an interactive About Me, a
