@@ -28,7 +28,7 @@ const heroContent = {
     name: "Anandhu",
     time: "now",
     lead: "Software Developer",
-    message: "Software Developer specializing in production-grade web applications, scalable system architecture, and reliable software solutions that turn complex requirements into maintainable products.",
+    message: "I’m Anandhu, a full-stack developer with 3+ years of experience building production-ready software, modern web applications, and automation solutions. I focus on scalable architecture, reliable engineering, and solving real-world business problems.",
   },
 
   section2: {
@@ -105,9 +105,9 @@ const heroContent = {
     views: {
       who: {
         eyebrow: "01 — Who I Am",
-        head: "Anandhu",
+        head: "Anandhu A S",
         blocks: [
-          { type: "paragraph", text: "I'm Anandhu, a Laravel full-stack developer based in Kochi, Kerala, working with training institutes, clinics, startups, and small-to-medium businesses that are outgrowing spreadsheets, WhatsApp groups, and disconnected tools." },
+          { type: "paragraph", text: "I’m Anandhu, a full-stack developer with 3+ years of experience building production-ready software and modern web applications. I work on CRMs, ERPs, e-commerce platforms, custom business software, automation systems, and high-performance websites. I focus on clean architecture, scalable systems, reliable engineering, and creating practical solutions that solve real-world business problems." },
           { type: "paragraph", text: "My work starts with the business problem, not the code. Before I open an editor, I want to understand how leads move through your pipeline, where your team loses time, and what \"done\" actually looks like for the people using the system every day." },
           { type: "paragraph", text: "From there I design a data model and architecture that can grow with you — role-based access, clean APIs, and admin panels your staff can actually use — then build it in Laravel with the same care I'd want if it were my own business running on it." },
           { type: "heading", text: "Consultative, not just technical" },
@@ -1167,7 +1167,7 @@ const heroContent = {
 
   /* ---- 08 · WORK EXPERIENCE & BACKGROUND (BIG ROBOT) ---- */
   bigRobot: {
-    labels: { left: "Work Experience · Engineering", right: "Laravel · React · MySQL" },
+    labels: { left: "Work Experience & Education · Engineering", right: "Laravel · React · MySQL" },
     eyebrow: "[ Experience ]   ",
     titleLines: ["Engineering built for", "real business needs."],
     description: "A record of the teams, systems, and engineering responsibilities behind my work as a software developer.",

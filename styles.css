@@ -496,6 +496,15 @@ a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent
 
 .role-line { display: block; }
 
+.hero-experience {
+  margin: 9px 0 0;
+  color: var(--accent);
+  font-size: clamp(11px, 0.35vw + 10px, 14px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .hero-meta {
   display: flex;
   justify-content: flex-end;
@@ -510,6 +519,7 @@ a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent
 
 .hero-meta li { display: flex; align-items: baseline; gap: 12px; }
 .hero-meta li + li::before { content: "·"; color: var(--text-low); }
+
 
 /* ---------- 07 · Notification (L08) ---------- */
 .notification {
@@ -1057,6 +1067,7 @@ button:focus-visible {
 
   .role-block { margin-top: 16px; }
   .role { font-size: clamp(19px, 5.4vw, 24px); }
+  .hero-experience { margin-top: 8px; font-size: 10px; letter-spacing: 0.08em; }
 
   .scrim-bottom { height: 38svh; }
 
@@ -1072,6 +1083,14 @@ button:focus-visible {
   .notif-msg { font-size: 12.5px; line-height: 1.35; }
 
   .notif-close { right: 0; }
+}
+
+@media (max-width: 700px) {
+  .education { padding: 11svh 0 12svh; }
+  .education-in { width: min(100% - 32px, 560px); }
+  .education-title { font-size: clamp(38px, 12vw, 58px); }
+  .education-grid { grid-template-columns: 1fr; }
+  .education-item { min-height: 0; padding: 24px 20px; }
 }
 
 /* portrait-orientation tablets: larger stage, same stacked copy */
